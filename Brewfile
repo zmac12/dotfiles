@@ -1,5 +1,42 @@
 tap "modular/packages", "https://github.com/modular/homebrew-packages.git", trusted: true
 tap "ubuntu/microk8s", trusted: true
+
+# ── shell ─────────────────────────────────────────────────────────────────────
+brew "fzf"                    # fuzzy finder — Ctrl+R history, file picker, completions
+brew "zsh-autosuggestions"    # inline history suggestions as you type
+brew "atuin"                  # cross-machine encrypted shell history (replaces Ctrl+R)
+brew "direnv"                 # auto-load .envrc per directory (auto-activate uv venvs)
+brew "zoxide"                 # smarter cd — learns your most-used dirs, `z` command
+
+# ── git ───────────────────────────────────────────────────────────────────────
+brew "git-delta"              # syntax-highlighted diffs (set as git pager)
+brew "lazygit"                # TUI git client — `lg` alias, also wired into Neovim
+
+# ── modern CLI replacements ───────────────────────────────────────────────────
+brew "eza"                    # ls with icons, git status, tree mode
+brew "bat"                    # cat with syntax highlighting (fzf previews use it)
+brew "fd"                     # find with sane syntax (fzf backend)
+brew "dust"                   # du — visual disk usage tree
+brew "bottom"                 # htop replacement — TUI system monitor (`btm`)
+brew "procs"                  # ps replacement with color and search
+
+# ── data & APIs ───────────────────────────────────────────────────────────────
+brew "duckdb"                 # in-process analytical DB — query Parquet/CSV locally
+brew "jq"                     # JSON processor (essential for APIs, docker, k8s)
+brew "yq"                     # YAML/JSON/TOML processor (jq for YAML)
+brew "xh"                     # modern HTTP client — friendlier curl/HTTPie in Rust
+
+# ── infra & k8s ──────────────────────────────────────────────────────────────
+brew "k9s"                    # Kubernetes TUI — browse pods, logs, exec
+brew "kubectx"                # fast k8s context + namespace switching (kubectx/kubens)
+
+# ── productivity ──────────────────────────────────────────────────────────────
+brew "just"                   # command runner — better Makefile for project tasks
+brew "glow"                   # render Markdown in the terminal
+brew "yazi"                   # blazing-fast terminal file manager (Neovim integration)
+brew "hyperfine"              # benchmarking tool — compare command performance
+
+# ── existing tools ────────────────────────────────────────────────────────────
 # Microsoft Azure CLI 2.0
 brew "azure-cli"
 # Pack, ship and run any application as a lightweight container
