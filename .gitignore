@@ -1,0 +1,5 @@
+.DS_Store
+*.swp
+*.swo
+# secrets never go here — use ~/.secrets.zsh
+home/.secrets.zsh

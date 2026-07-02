@@ -1,0 +1,116 @@
+command_timeout = 1000
+palette = 'flexoki_dark'
+
+# Flexoki Tokyo Night layout
+# Segments: [blue accent] → [cyan dir] → [dark-blue git] → [neutral langs] → [near-bg time]
+format = """
+[░▒▓](#4385be)\
+[  ](bg:#4385be fg:#100f0f)\
+[](bg:#3aa99f fg:#4385be)\
+$directory\
+[](fg:#3aa99f bg:#205ea6)\
+$git_branch\
+$git_status\
+$git_commit\
+$git_state\
+[](fg:#205ea6 bg:#403e3c)\
+$aws\
+$python\
+$golang\
+$nodejs\
+$rust\
+[](fg:#403e3c bg:#282726)\
+$time\
+[ ](fg:#282726)\
+\n$character"""
+
+[palettes.flexoki_dark]
+black = '#100f0f'
+red = '#d14d41'
+green = '#879a39'
+yellow = '#d0a215'
+blue = '#4385be'
+purple = '#ce5d97'
+cyan = '#3aa99f'
+white = '#878580'
+bright_black = '#575653'
+bright_red = '#af3029'
+bright_green = '#66800b'
+bright_yellow = '#ad8301'
+bright_blue = '#205ea6'
+bright_purple = '#a02f6f'
+bright_cyan = '#24837b'
+bright_white = '#cecdc3'
+
+[directory]
+style = "fg:#100f0f bg:#3aa99f"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+
+[git_branch]
+symbol = ""
+style = "bg:#205ea6"
+format = '[[ $symbol $branch ](fg:#3aa99f bg:#205ea6)]($style)'
+ignore_branches = ['master', 'main']
+
+[git_status]
+style = "bg:#205ea6"
+format = '[[($all_status$ahead_behind )](fg:#3aa99f bg:#205ea6)]($style)'
+ahead = '⇡${count}'
+diverged = '⇕⇡${ahead_count}⇣${behind_count}'
+behind = '⇣${count}'
+staged = '[++\($count\)](bold fg:#879a39 bg:#205ea6)'
+modified = '!'
+untracked = '?'
+deleted = '✘'
+
+[git_commit]
+style = "fg:#d0a215 bg:#205ea6"
+format = '[ \($hash$tag\) ]($style)'
+tag_symbol = ' 🔖 '
+
+[git_state]
+style = "fg:#d14d41 bg:#205ea6"
+format = '[\($state( $progress_current/$progress_total)\) ]($style)'
+cherry_pick = '[🍒 PICKING](bold fg:#d14d41 bg:#205ea6)'
+
+[aws]
+style = "bg:#403e3c"
+format = '[[ 🅰  $profile(\($region\)) ](fg:#d0a215 bg:#403e3c)]($style)'
+
+[python]
+symbol = ""
+style = "bg:#403e3c"
+format = '[[ $symbol ($version)($virtualenv) ](fg:#3aa99f bg:#403e3c)]($style)'
+
+[golang]
+symbol = ""
+style = "bg:#403e3c"
+format = '[[ $symbol ($version) ](fg:#3aa99f bg:#403e3c)]($style)'
+
+[nodejs]
+symbol = ""
+style = "bg:#403e3c"
+format = '[[ $symbol ($version) ](fg:#3aa99f bg:#403e3c)]($style)'
+
+[rust]
+symbol = ""
+style = "bg:#403e3c"
+format = '[[ $symbol ($version) ](fg:#3aa99f bg:#403e3c)]($style)'
+
+[time]
+disabled = false
+time_format = "%R"
+style = "bg:#282726"
+format = '[[  $time ](fg:#878580 bg:#282726)]($style)'
+
+[character]
+success_symbol = '[➜](bold green)'
+error_symbol = '[➜](bold red)'
