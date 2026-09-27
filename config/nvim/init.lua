@@ -89,6 +89,12 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Neo-tree replaces netrw as the file browser (it opens for `nvim .` and
+-- `:e some/dir`). netrw's buffer maps also clashed with flash's `T` motion
+-- (netrw maps Tb/Th), so turn it off before any plugin loads.
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 -- Ensure Homebrew + MacTeX tools are visible to Neovim (tree-sitter, latexmk, etc.)
 do
   local extras = { '/opt/homebrew/bin', '/usr/local/bin', '/Library/TeX/texbin' }
