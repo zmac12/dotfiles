@@ -59,3 +59,16 @@ desktop.ini
 .idea
 .iml
 *.sublime-workspace
+**/.claude/settings.local.json
+
+# Xcode / Swift #
+#################
+xcuserdata/
+DerivedData/
+*.xcuserstate
+.swiftpm/
+.build/
+# machine-specific: absolute paths from `xcode-build-server config`
+buildServer.json
+# xcodebuild.nvim per-project state (scheme, device, logs)
+.nvim/

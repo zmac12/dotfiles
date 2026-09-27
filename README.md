@@ -9,6 +9,7 @@ Personal macOS dotfiles for Zach McQuiston. Managed with a symlink-based install
 | `Brewfile` | All Homebrew formulae, casks, and VS Code extensions |
 | `install.sh` | Bootstrap script for a fresh Mac |
 | `home/` | Files symlinked into `~/` |
+| `home/bin/` | Personal scripts, linked into `~/bin` (on `PATH`) — e.g. `new-ios-app` |
 | `config/starship.toml` | Starship prompt — Flexoki Tokyo Night powerline theme |
 | `config/nvim/` | Neovim — Kickstart.nvim with custom plugins |
 | `config/zed/` | Zed editor settings |
@@ -29,6 +30,49 @@ The script will:
 5. Symlink all dotfiles (existing files are backed up to `~/.dotfiles_backup/`)
 6. Create `~/.secrets.zsh` from a template
 7. Set the default shell to Homebrew zsh
+
+## Swift / iOS
+
+Native app development runs from Neovim, with Xcode kept for the things only it does well
+(SwiftUI previews, capabilities, signing, Instruments).
+
+**One-time setup on a new Mac**
+
+1. Install **Xcode** from the App Store, then:
+   ```bash
+   sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+   sudo xcodebuild -license accept
+   xcodebuild -runFirstLaunch
+   xcodebuild -downloadPlatform iOS      # simulator runtime
+   ```
+2. `brew bundle` installs the CLI side (Brewfile "swift / iOS" section): `xcode-build-server`,
+   `xcbeautify`, `xcp`, `xcodegen`, `swiftformat`, `swiftlint`, and `pymobiledevice3`.
+
+**New app**
+
+```bash
+new-ios-app BlockRunner          # → ~/Developer/BlockRunner, SwiftUI + Swift Testing
+cd ~/Developer/BlockRunner && nvim
+```
+
+Projects are defined in `project.yml` (XcodeGen); the `.xcodeproj` is generated and not committed.
+Sources use Xcode 16 synchronized folders, so new files need no project edits. Each project has a
+`justfile`: `just gen | build | test | xcode | format | lint`.
+
+**Neovim** (`config/nvim/lua/custom/plugins/swift.lua`)
+
+| | |
+|---|---|
+| LSP | `sourcekit-lsp` via `xcrun` (matches the selected Xcode); `buildServer.json` from `xcode-build-server` makes it understand `.xcodeproj` |
+| Build / run / test | [xcodebuild.nvim](https://github.com/wojciech-kulik/xcodebuild.nvim), loaded only inside a Swift project |
+| Debug | its nvim-dap integration (lldb-dap from Xcode), sharing the kickstart dap-ui |
+| Format / lint | `swiftformat` on save (conform), `swiftlint` (nvim-lint) |
+
+Keys: `<leader>i…` for iOS (`is` setup, `ir` build & run, `ib` build, `it` test, `id` device,
+`ii` all actions) and `<leader>dd` / `dt` / `dx` to debug. First time in a project: `<leader>is`.
+
+**On a physical iPhone** (iOS 17+), debugging needs pymobiledevice3's trusted tunnel, which runs
+with `sudo`; see `:h xcodebuild.remote-debugger`.
 
 ## Secrets
 

@@ -1,0 +1,246 @@
+#!/usr/bin/env bash
+# new-ios-app — scaffold a SwiftUI iOS app that works from Neovim and Xcode.
+#
+#   new-ios-app BlockRunner                 # → ~/Developer/BlockRunner
+#   new-ios-app BlockRunner --ios 18.0 --bundle-prefix com.zachmcquiston
+#
+# The .xcodeproj is generated from project.yml by XcodeGen and is NOT
+# committed: edit project.yml (targets, capabilities, settings), then
+# `just gen`. Sources use Xcode 16 synchronized folders, so adding a .swift
+# file under App/ or Tests/ needs no project change at all.
+set -euo pipefail
+
+usage() { sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+
+NAME=""
+IOS="18.0"
+PREFIX="com.zachmcquiston"
+PARENT="$HOME/Developer"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage ;;
+    --ios) IOS="$2"; shift 2 ;;
+    --bundle-prefix) PREFIX="$2"; shift 2 ;;
+    --dir) PARENT="$2"; shift 2 ;;
+    -*) echo "unknown option: $1" >&2; usage 1 ;;
+    *) NAME="$1"; shift ;;
+  esac
+done
+
+[[ -n "$NAME" ]] || usage 1
+[[ "$NAME" =~ ^[A-Za-z][A-Za-z0-9]*$ ]] || { echo "name must be alphanumeric, starting with a letter (e.g. BlockRunner)" >&2; exit 1; }
+for tool in xcodegen xcode-build-server; do
+  command -v "$tool" >/dev/null || { echo "missing $tool — run: brew bundle --file ~/dotfiles/Brewfile" >&2; exit 1; }
+done
+
+ROOT="$PARENT/$NAME"
+[[ -e "$ROOT" ]] && { echo "$ROOT already exists" >&2; exit 1; }
+mkdir -p "$ROOT/App/Assets.xcassets/AppIcon.appiconset" "$ROOT/App/Assets.xcassets/AccentColor.colorset" "$ROOT/Tests"
+cd "$ROOT"
+
+cat > project.yml <<EOF
+name: $NAME
+options:
+  bundleIdPrefix: $PREFIX
+  deploymentTarget:
+    iOS: "$IOS"
+  projectFormat: xcode16_0 # enables synchronized (buildable) folders
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    # Set once you join the Apple Developer Program (or use your Personal Team
+    # ID); simulator builds don't need it. Find it with:
+    #   security find-identity -v -p codesigning
+    DEVELOPMENT_TEAM: ""
+targets:
+  $NAME:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        type: syncedFolder
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $PREFIX.$(echo "$NAME" | tr '[:upper:]' '[:lower:]')
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1" # iPhone; "1,2" adds iPad
+    # Capabilities go here later, e.g. HealthKit:
+    # entitlements:
+    #   path: App/$NAME.entitlements
+    #   properties:
+    #     com.apple.developer.healthkit: true
+  ${NAME}Tests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+        type: syncedFolder
+    dependencies:
+      - target: $NAME
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  $NAME:
+    build:
+      targets:
+        $NAME: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets: [$NAME]
+      targets: [${NAME}Tests]
+EOF
+
+cat > "App/${NAME}App.swift" <<EOF
+import SwiftUI
+
+@main
+struct ${NAME}App: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+EOF
+
+cat > App/ContentView.swift <<'EOF'
+import SwiftUI
+
+struct ContentView: View {
+    @State private var taps = 0
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "hammer.fill")
+                .font(.largeTitle)
+                .foregroundStyle(.tint)
+            Text("Tapped \(taps) times")
+            Button("Tap") { taps += 1 }
+                .buttonStyle(.borderedProminent)
+        }
+        .padding()
+    }
+}
+
+#Preview {
+    ContentView()
+}
+EOF
+
+cat > "Tests/${NAME}Tests.swift" <<EOF
+import Testing
+@testable import $NAME
+
+struct ${NAME}Tests {
+    @Test func arithmeticStillWorks() {
+        #expect(1 + 1 == 2)
+    }
+}
+EOF
+
+cat > App/Assets.xcassets/Contents.json <<'EOF'
+{ "info" : { "author" : "xcode", "version" : 1 } }
+EOF
+cat > App/Assets.xcassets/AppIcon.appiconset/Contents.json <<'EOF'
+{
+  "images" : [ { "idiom" : "universal", "platform" : "ios", "size" : "1024x1024" } ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}
+EOF
+cat > App/Assets.xcassets/AccentColor.colorset/Contents.json <<'EOF'
+{ "colors" : [ { "idiom" : "universal" } ], "info" : { "author" : "xcode", "version" : 1 } }
+EOF
+
+cat > .swiftformat <<'EOF'
+--swiftversion 6.0
+--indent 4
+--maxwidth 120
+--wraparguments before-first
+--wrapcollections before-first
+EOF
+
+cat > .swiftlint.yml <<'EOF'
+included: [App, Tests]
+disabled_rules:
+  - trailing_comma        # swiftformat owns formatting
+  - opening_brace
+line_length: 120
+EOF
+
+cat > .gitignore <<EOF
+# Generated by XcodeGen from project.yml — run \`just gen\`
+*.xcodeproj/
+buildServer.json
+.nvim/
+xcuserdata/
+DerivedData/
+.build/
+EOF
+
+cat > justfile <<EOF
+# Default iPhone simulator; override with: just sim="iPhone 17 Pro" build
+sim := "iPhone 17"
+
+# Regenerate the Xcode project and refresh LSP wiring
+gen:
+    xcodegen generate --quiet
+    xcode-build-server config -project $NAME.xcodeproj -scheme $NAME >/dev/null
+
+# Open in Xcode (previews, capabilities, signing, Instruments)
+xcode: gen
+    open $NAME.xcodeproj
+
+build: gen
+    set -o pipefail && xcodebuild -project $NAME.xcodeproj -scheme $NAME -destination 'platform=iOS Simulator,name={{sim}}' build | xcbeautify
+
+test: gen
+    set -o pipefail && xcodebuild -project $NAME.xcodeproj -scheme $NAME -destination 'platform=iOS Simulator,name={{sim}}' test | xcbeautify
+
+format:
+    swiftformat App Tests
+
+lint:
+    swiftlint
+EOF
+
+cat > README.md <<EOF
+# $NAME
+
+SwiftUI app for iOS $IOS+. Scaffolded with \`new-ios-app\` from ~/dotfiles.
+
+| Task | Command |
+|---|---|
+| Regenerate project after editing \`project.yml\` | \`just gen\` |
+| Build / test on the simulator | \`just build\` / \`just test\` |
+| Neovim: first-time setup | \`nvim\` then \`<leader>is\` (\`:XcodebuildSetup\`) |
+| Neovim: build & run / test / debug | \`<leader>ir\` / \`<leader>it\` / \`<leader>dd\` |
+| Previews, capabilities, signing | \`just xcode\` |
+
+The \`.xcodeproj\` is generated and ignored by git; \`project.yml\` is the source of truth.
+New files under \`App/\` or \`Tests/\` are picked up automatically (synchronized folders).
+EOF
+
+xcodegen generate --quiet
+if xcode-select -p 2>/dev/null | grep -q '\.app/'; then
+  xcode-build-server config -project "$NAME.xcodeproj" -scheme "$NAME" >/dev/null
+else
+  echo "note: Xcode isn't selected yet; run 'just gen' after installing it so the LSP understands the project" >&2
+fi
+git init -q && git add -A && git commit -q -m "Scaffold $NAME with new-ios-app"
+
+echo "Created $ROOT"
+echo "  cd $ROOT && nvim     # then <leader>is to pick scheme + simulator"

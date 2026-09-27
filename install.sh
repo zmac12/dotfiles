@@ -34,7 +34,7 @@ if ! command -v brew &>/dev/null; then
 fi
 
 green "Installing Homebrew packages (this may take a while)..."
-brew bundle install --file="$DOTFILES/Brewfile" --no-lock
+brew bundle install --file="$DOTFILES/Brewfile"
 
 # ── 3. Oh My Zsh ─────────────────────────────────────────────────────────────
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then

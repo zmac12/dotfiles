@@ -321,6 +321,7 @@ require('lazy').setup({
         ['<leader>a'] = { name = '[A]vante AI', _ = 'which_key_ignore' },
         ['<leader>x'] = { name = 'Trouble / Diagnostics', _ = 'which_key_ignore' },
         ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
+        ['<leader>i'] = { name = '[I]OS / Xcode', _ = 'which_key_ignore' },
       }
       -- visual mode
       require('which-key').register({
@@ -973,6 +974,7 @@ require('lazy').setup({
         'markdown_inline',
         'python',
         'ssh_config',
+        'swift',
         'toml',
         'tsx',
         'typescript',

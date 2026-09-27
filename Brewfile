@@ -36,6 +36,18 @@ brew "glow"                   # render Markdown in the terminal
 brew "yazi"                   # blazing-fast terminal file manager (Neovim integration)
 brew "hyperfine"              # benchmarking tool — compare command performance
 
+# ── swift / iOS ──────────────────────────────────────────────────────────────
+# Xcode itself comes from the App Store. These wire Xcode projects into Neovim
+# (xcodebuild.nvim + sourcekit-lsp); see README "Swift / iOS".
+brew "xcode-build-server"     # Build Server Protocol bridge so sourcekit-lsp understands .xcodeproj
+brew "xcbeautify"             # readable xcodebuild output (used by xcodebuild.nvim)
+brew "xcp"                    # XcodeProjectCLI — add/move/rename files in .xcodeproj from Neovim
+brew "xcodegen"               # generate .xcodeproj from a readable project.yml
+brew "swiftformat"            # Swift formatter (conform.nvim)
+brew "swiftlint"              # Swift linter (nvim-lint)
+brew "coreutils"              # xcodebuild.nvim uses GNU tools to stream macOS app logs
+uv "pymobiledevice3"          # debug on physical iPhones (iOS 17+ trusted tunnel)
+
 # ── existing tools ────────────────────────────────────────────────────────────
 # Microsoft Azure CLI 2.0
 brew "azure-cli"
