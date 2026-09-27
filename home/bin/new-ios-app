@@ -53,10 +53,8 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGN_STYLE: Automatic
-    # Set once you join the Apple Developer Program (or use your Personal Team
-    # ID); simulator builds don't need it. Find it with:
-    #   security find-identity -v -p codesigning
-    DEVELOPMENT_TEAM: ""
+    # From \$APPLE_TEAM_ID (set in ~/.secrets.zsh). Simulator builds don't need it.
+    DEVELOPMENT_TEAM: "${APPLE_TEAM_ID:-}"
 targets:
   $NAME:
     type: application
@@ -234,6 +232,7 @@ The \`.xcodeproj\` is generated and ignored by git; \`project.yml\` is the sourc
 New files under \`App/\` or \`Tests/\` are picked up automatically (synchronized folders).
 EOF
 
+[[ -n "${APPLE_TEAM_ID:-}" ]] || echo "note: APPLE_TEAM_ID is unset, so device builds won't be signed; set it in ~/.secrets.zsh and fill DEVELOPMENT_TEAM in project.yml" >&2
 xcodegen generate --quiet
 if xcode-select -p 2>/dev/null | grep -q '\.app/'; then
   xcode-build-server config -project "$NAME.xcodeproj" -scheme "$NAME" >/dev/null
