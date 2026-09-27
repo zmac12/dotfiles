@@ -309,24 +309,20 @@ require('lazy').setup({
     config = function() -- This is the function that runs, AFTER loading
       require('which-key').setup()
 
-      -- Document existing key chains
-      require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument / [D]ebug', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-        ['<leader>t'] = { name = '[T]oggle / [T]erminal', _ = 'which_key_ignore' },
-        ['<leader>h'] = { name = 'Git [H]unk', _ = 'which_key_ignore' },
-        ['<leader>a'] = { name = '[A]vante AI', _ = 'which_key_ignore' },
-        ['<leader>x'] = { name = 'Trouble / Diagnostics', _ = 'which_key_ignore' },
-        ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
-        ['<leader>i'] = { name = '[I]OS / Xcode', _ = 'which_key_ignore' },
+      -- Document existing key chains (which-key v3 spec)
+      require('which-key').add {
+        { '<leader>a', group = '[A]vante AI' },
+        { '<leader>c', group = '[C]ode' },
+        { '<leader>d', group = '[D]ocument / [D]ebug' },
+        { '<leader>g', group = '[G]it' },
+        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>i', group = '[I]OS / Xcode' },
+        { '<leader>r', group = '[R]ename' },
+        { '<leader>s', group = '[S]earch' },
+        { '<leader>t', group = '[T]oggle / [T]erminal' },
+        { '<leader>w', group = '[W]orkspace' },
+        { '<leader>x', group = 'Trouble / Diagnostics' },
       }
-      -- visual mode
-      require('which-key').register({
-        ['<leader>h'] = { 'Git [H]unk' },
-      }, { mode = 'v' })
     end,
   },
 
