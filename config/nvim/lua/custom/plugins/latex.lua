@@ -1,4 +1,5 @@
 -- LaTeX: VimTeX (compile / view / motions) + works with texlab LSP from Mason
+-- Open a .tex file → continuous latexmk starts → save rebuilds PDF → Skim opens/refreshes.
 
 return {
   {
@@ -20,6 +21,9 @@ return {
         },
       }
 
+      -- Open / refresh the PDF viewer after a successful compile.
+      vim.g.vimtex_view_automatic = 1
+
       -- macOS: Skim is the usual PDF viewer for forward/inverse search.
       -- Install: brew install --cask skim
       -- Fallback: open with the system default PDF app.
@@ -37,6 +41,15 @@ return {
 
       vim.g.vimtex_quickfix_mode = 0
       vim.g.vimtex_syntax_conceal_disable = 0
+
+      -- Start continuous latexmk when a TeX buffer initializes (no toggle).
+      -- After that, every :w recompiles and Skim updates via the callback.
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'VimtexEventInitPost',
+        group = vim.api.nvim_create_augroup('vimtex_auto_compile', { clear = true }),
+        desc = 'Start continuous latexmk for TeX buffers',
+        command = 'VimtexCompile!',
+      })
     end,
     keys = {
       { '<localleader>ll', '<cmd>VimtexCompile<cr>', desc = 'VimTeX: compile', ft = 'tex' },

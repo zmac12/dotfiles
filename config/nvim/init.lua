@@ -104,6 +104,14 @@ end
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
+-- Disable unused remote-plugin providers.
+-- Only the python3 host is actually used (molten-nvim registers into it); the
+-- perl and node sections of rplugin.vim are empty. Disabling these silences
+-- four :checkhealth warnings and skips the interpreter probes at startup.
+vim.g.loaded_node_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
+
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
@@ -304,7 +312,7 @@ require('lazy').setup({
       -- Document existing key chains
       require('which-key').register {
         ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
+        ['<leader>d'] = { name = '[D]ocument / [D]ebug', _ = 'which_key_ignore' },
         ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
         ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
         ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
@@ -603,6 +611,19 @@ require('lazy').setup({
         -- tsserver = {},
         --
 
+        -- Python: `ruff` provides lint diagnostics, code actions, and formatting.
+        -- Type checking is handled by `ty` (Astral), registered separately in
+        -- lua/custom/plugins/python.lua because Mason does not ship it yet.
+        ruff = {
+          init_options = {
+            settings = {
+              lineLength = 100,
+              lint = { preview = true },
+              format = { preview = true },
+            },
+          },
+        },
+
         -- LaTeX language server (completions, diagnostics). VimTeX handles compile/view.
         texlab = {
           settings = {
@@ -651,11 +672,11 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'prettierd',
-        'black',
-        'isort',
+        'ruff', -- lint + format for Python (replaces black/isort)
         'eslint_d',
         'markdownlint',
         'latexindent',
+        'debugpy', -- Python debug adapter for nvim-dap-python
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -707,7 +728,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        python = { 'isort', 'black' },
+        python = { 'ruff_fix', 'ruff_format' }, -- Astral toolchain (replaces isort + black)
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
         typescript = { 'prettierd', 'prettier', stop_after_first = true },
         javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
@@ -919,54 +940,73 @@ require('lazy').setup({
     end,
   },
   { -- Highlight, edit, and navigate code
+    -- The `main` branch drives the modern tree-sitter CLI. The old `master`
+    -- branch passed `--no-bindings` to `tree-sitter generate`, which CLI 0.26
+    -- removed, so `:TSInstall` failed for any parser without a pre-generated
+    -- `src/parser.c` (latex, among others).
+    --
+    -- `main` does not lazy-load, and enables nothing by default: highlight and
+    -- indent are opt-in per filetype via the autocommands below.
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
+    lazy = false,
     build = ':TSUpdate',
-    opts = {
-      ensure_installed = {
+    config = function()
+      local ts = require 'nvim-treesitter'
+      ts.setup()
+
+      local languages = {
         'bash',
+        'bibtex',
         'c',
+        'csv',
         'css',
         'diff',
+        'fish',
         'html',
         'javascript',
         'json',
+        'latex',
         'lua',
         'luadoc',
         'markdown',
         'markdown_inline',
         'python',
+        'ssh_config',
+        'toml',
         'tsx',
         'typescript',
         'vim',
         'vimdoc',
         'yaml',
-      },
-      -- Autoinstall can error (and block opening files) when a parser needs
-      -- the tree-sitter CLI or network. Install extras with :TSInstall <lang>.
-      auto_install = false,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
-    },
-    config = function(_, opts)
-      -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
+      }
 
-      -- Prefer git instead of curl in order to improve connectivity in some environments
-      require('nvim-treesitter.install').prefer_git = true
-      ---@diagnostic disable-next-line: missing-fields
-      require('nvim-treesitter.configs').setup(opts)
+      -- No-op for parsers that are already present, so this is cheap on startup.
+      ts.install(languages)
 
-      -- There are additional nvim-treesitter modules that you can use to interact
-      -- with nvim-treesitter. You should go explore a few and see what interests you:
-      --
-      --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-      --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-      --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+      -- Filetypes are not always named after their parser, so map through
+      -- whatever Neovim resolves the buffer's language to.
+      vim.api.nvim_create_autocmd('FileType', {
+        group = vim.api.nvim_create_augroup('treesitter-enable', { clear = true }),
+        callback = function(args)
+          local ft = args.match
+          local lang = vim.treesitter.language.get_lang(ft)
+          if not lang or not vim.tbl_contains(languages, lang) then
+            return
+          end
+
+          if not pcall(vim.treesitter.start, args.buf, lang) then
+            return
+          end
+
+          -- Ruby leans on vim's regex engine for indent rules.
+          if lang == 'ruby' then
+            vim.bo[args.buf].syntax = 'on'
+          else
+            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
+      })
     end,
   },
 

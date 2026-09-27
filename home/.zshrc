@@ -64,6 +64,7 @@ export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers {}'"
 export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
 
 export BAT_THEME="TwoDark"
+export PATH="/Library/TeX/texbin:$PATH"
 
 # ── aliases ───────────────────────────────────────────────────────────────────
 alias ls='eza --icons --git --group-directories-first'

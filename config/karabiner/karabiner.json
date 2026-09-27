@@ -12,6 +12,14 @@
                         {
                             "from": { "key_code": "escape" },
                             "to": [{ "key_code": "caps_lock" }]
+                        },
+                        {
+                            "from": { "apple_vendor_top_case_key_code": "keyboard_fn" },
+                            "to": [{ "key_code": "left_control" }]
+                        },
+                        {
+                            "from": { "key_code": "left_control" },
+                            "to": [{ "apple_vendor_top_case_key_code": "keyboard_fn" }]
                         }
                     ]
                 },
@@ -46,14 +54,6 @@
                         {
                             "from": { "key_code": "escape" },
                             "to": [{ "key_code": "caps_lock" }]
-                        },
-                        {
-                            "from": { "key_code": "left_command" },
-                            "to": [{ "key_code": "left_option" }]
-                        },
-                        {
-                            "from": { "key_code": "left_option" },
-                            "to": [{ "key_code": "left_command" }]
                         }
                     ]
                 },
@@ -82,6 +82,23 @@
                         "vendor_id": 19266
                     },
                     "ignore": false
+                },
+                {
+                    "identifiers": {
+                        "is_keyboard": true,
+                        "product_id": 45975,
+                        "vendor_id": 1133
+                    },
+                    "simple_modifications": [
+                        {
+                            "from": { "key_code": "caps_lock" },
+                            "to": [{ "key_code": "escape" }]
+                        },
+                        {
+                            "from": { "key_code": "escape" },
+                            "to": [{ "key_code": "caps_lock" }]
+                        }
+                    ]
                 }
             ],
             "fn_function_keys": [
